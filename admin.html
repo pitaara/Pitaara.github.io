@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Pitaara admin</title>
+<style>
+:root{--bg:#fff;--fg:#111;--mut:#6b6b6b;--line:#e3e3e3;--card:#f5f5f5}
+@media(prefers-color-scheme:dark){:root{--bg:#111;--fg:#f2f2f2;--mut:#9a9a9a;--line:#2c2c2c;--card:#1b1b1b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:22px;font-weight:500;letter-spacing:.2em;margin:0 0 16px}
+h2{font-size:17px;font-weight:500;margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:18px 0 10px;flex-wrap:wrap}
+label{display:block;font-size:14px;color:var(--mut);margin:12px 0 4px}
+input[type=text],input[type=number],textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
+button,.btn{font:inherit;cursor:pointer;padding:10px 16px;border:0;border-radius:8px;background:var(--fg);color:var(--bg)}
+.alt{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.sm{padding:6px 10px;font-size:13px}
+.row{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.row img,.ph{width:56px;height:56px;border-radius:8px;object-fit:cover;background:var(--card);flex:none}
+.grow{flex:1;min-width:0}
+.grow div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mut{color:var(--mut);font-size:14px}
+.acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+#pv{width:80px;height:80px;border-radius:8px;object-fit:cover;margin-top:8px;display:none}
+#m{position:sticky;top:8px;background:var(--fg);color:var(--bg);padding:10px 14px;border-radius:8px;margin-bottom:10px;display:none}
+.chk{display:flex;align-items:center;gap:8px;margin:14px 0}
+.chk input{width:18px;height:18px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>PITAARA ADMIN</h1>
+<div id="m" role="status"></div>
+
+<div id="out">
+<p class="mut">Products badalne ke liye login karo. Sirf approved Gmail se hi save hoga.</p>
+<button id="in">Google se login</button>
+</div>
+
+<div id="app" hidden>
+<div class="top"><span class="mut" id="who"></span><button class="alt sm" id="exit">Logout</button></div>
+
+<form id="f">
+<h2 id="ft">Naya product</h2>
+<label for="n">Naam</label><input id="n" type="text" required>
+<label for="p">Daam (rupaye)</label><input id="p" type="number" min="0" step="any" required>
+<label for="d">Description</label><textarea id="d" rows="2"></textarea>
+<label for="ph">Photo</label><input id="ph" type="file" accept="image/*">
+<img id="pv" alt="Photo preview">
+<label class="chk"><input id="a" type="checkbox" checked> Site pe dikhao</label>
+<button type="submit" id="save">Save karo</button>
+<button type="button" class="alt" id="cancel" hidden>Cancel</button>
+</form>
+
+<div class="top"><h2>Products</h2>
+<div class="acts"><button class="alt sm" id="csv">CSV download</button><button class="alt sm" id="json">Backup download</button></div></div>
+<div id="list"></div>
+</div>
+</div>
+
+<script type="module">
+import { firebaseConfig } from "./config.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc, setDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app), col = collection(db, "products");
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let items = [], editId = null, photo = "";
+
+function msg(t) { const m = $("m"); m.textContent = t; m.style.display = "block"; clearTimeout(msg.t); msg.t = setTimeout(() => m.style.display = "none", 4000); }
+
+function shrink(file) {
+  return new Promise((ok, no) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const im = new Image();
+      im.onload = () => {
+        const k = Math.min(1, 600 / Math.max(im.width, im.height)), c = document.createElement("canvas");
+        c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+        ok(c.toDataURL("image/jpeg", 0.65));
+      };
+      im.onerror = no; im.src = r.result;
+    };
+    r.onerror = no; r.readAsDataURL(file);
+  });
+}
+
+async function load() {
+  try {
+    items = (await getDocs(col)).docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.order || 0) - (a.order || 0));
+    show();
+  } catch (e) { msg("Products load nahi hue. config.js check karo."); }
+}
+
+function show() {
+  $("list").innerHTML = items.length ? items.map(p =>
+    '<div class="row">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<div class="ph"></div>') +
+    '<div class="grow"><div>' + esc(p.name) + '</div><div class="mut">\u20B9' + esc(p.price) + (p.available === false ? " | Chhupa hua" : "") + '</div></div>' +
+    '<div class="acts"><button class="alt sm" data-a="edit" data-id="' + p.id + '">Edit</button>' +
+    '<button class="alt sm" data-a="tog" data-id="' + p.id + '">' + (p.available === false ? "Dikhao" : "Chhupao") + '</button>' +
+    '<button class="alt sm" data-a="del" data-id="' + p.id + '">Delete</button></div></div>'
+  ).join("") : '<p class="mut">Abhi koi product nahi hai. Upar se pehla product jodo.</p>';
+}
+
+function reset() {
+  editId = null; photo = ""; $("f").reset(); $("a").checked = true;
+  $("pv").style.display = "none"; $("ft").textContent = "Naya product"; $("cancel").hidden = true;
+}
+
+$("ph").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { photo = await shrink(f); $("pv").src = photo; $("pv").style.display = "block"; } catch (x) { msg("Photo nahi khuli, doosri try karo."); }
+};
+
+$("f").onsubmit = async e => {
+  e.preventDefault();
+  const data = { name: $("n").value.trim(), price: Number($("p").value) || 0, desc: $("d").value.trim(), img: photo, available: $("a").checked };
+  try {
+    if (editId) await setDoc(doc(db, "products", editId), data, { merge: true });
+    else await addDoc(col, { ...data, order: Date.now() });
+    reset(); await load(); msg("Save ho gaya");
+  } catch (x) { msg("Save nahi hua. Aapka Gmail admin list me nahi hai."); }
+};
+
+$("cancel").onclick = reset;
+
+$("list").onclick = async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const p = items.find(x => x.id === b.dataset.id); if (!p) return;
+  try {
+    if (b.dataset.a === "edit") {
+      editId = p.id; photo = p.img || "";
+      $("n").value = p.name || ""; $("p").value = p.price ?? ""; $("d").value = p.desc || ""; $("a").checked = p.available !== false;
+      $("pv").src = photo; $("pv").style.display = photo ? "block" : "none";
+      $("ft").textContent = "Product edit karo"; $("cancel").hidden = false; scrollTo({ top: 0, behavior: "smooth" });
+    } else if (b.dataset.a === "tog") {
+      await setDoc(doc(db, "products", p.id), { available: p.available === false }, { merge: true }); await load();
+    } else if (b.dataset.a === "del" && confirm(p.name + " delete karna hai?")) {
+      await deleteDoc(doc(db, "products", p.id)); await load(); msg("Delete ho gaya");
+    }
+  } catch (x) { msg("Ye kaam nahi hua. Aapka Gmail admin list me nahi hai."); }
+};
+
+function save(name, text, type) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click();
+}
+
+$("csv").onclick = () => {
+  const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+  const rows = [["name", "price", "description", "available"].join(",")].concat(
+    items.map(p => [q(p.name), p.price, q(p.desc), p.available === false ? "no" : "yes"].join(",")));
+  save("pitaara-products.csv", rows.join("\n"), "text/csv");
+};
+$("json").onclick = () => save("pitaara-backup.json", JSON.stringify(items, null, 2), "application/json");
+
+$("in").onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(() => msg("Login nahi hua. Dobara try karo."));
+$("exit").onclick = () => signOut(auth);
+onAuthStateChanged(auth, u => {
+  $("out").hidden = !!u; $("app").hidden = !u;
+  if (u) { $("who").textContent = u.email; load(); }
+});
+</script>
+</body>
+</html>

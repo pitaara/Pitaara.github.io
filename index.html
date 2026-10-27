@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pitaara</title>
+<meta name="description" content="Pitaara, Delhi. Products dekho aur seedha WhatsApp pe order karo.">
+<meta name="theme-color" content="#111111">
+<style>
+:root{--bg:#fff;--fg:#111;--mut:#6b6b6b;--line:#e3e3e3;--card:#f5f5f5}
+@media(prefers-color-scheme:dark){:root{--bg:#111;--fg:#f2f2f2;--mut:#9a9a9a;--line:#2c2c2c;--card:#1b1b1b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5;padding-bottom:96px}
+header{text-align:center;padding:28px 16px 18px;border-bottom:1px solid var(--line)}
+header svg{width:84px;height:84px}
+.word{font-size:24px;letter-spacing:.4em;margin:6px 0 0 .4em;font-weight:400}
+.wrap{max-width:960px;margin:0 auto;padding:16px}
+.search{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);font-size:16px}
+.search:focus,button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-top:16px}
+.card{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.ph{aspect-ratio:1;background:var(--card);display:grid;place-items:center;color:var(--mut)}
+.ph img{width:100%;height:100%;object-fit:cover}
+.ph svg{width:44px;height:44px}
+.info{padding:10px 12px 12px;display:flex;flex-direction:column;gap:2px;flex:1}
+.name{font-size:15px;font-weight:500}
+.desc{font-size:13px;color:var(--mut)}
+.price{font-size:16px;margin:6px 0 8px}
+button{font:inherit;cursor:pointer}
+.add{margin-top:auto;width:100%;padding:10px;border:0;border-radius:8px;background:var(--fg);color:var(--bg);font-size:14px}
+.empty{color:var(--mut);text-align:center;padding:40px 0;grid-column:1/-1}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:none}
+.bar.on{display:block}
+.bar-in{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.bar b{font-weight:500}
+.btn{padding:11px 18px;border:0;border-radius:8px;background:var(--fg);color:var(--bg);font-size:15px}
+.btn.alt{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;z-index:5}
+.sheet.on{display:flex}
+.panel{background:var(--bg);width:100%;max-width:560px;margin:0 auto;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:80vh;overflow:auto}
+.panel h2{font-size:18px;font-weight:500;margin:0 0 10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.qty{display:flex;align-items:center;gap:10px}
+.qty button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:16px}
+.tot{display:flex;justify-content:space-between;padding:14px 0;font-weight:500}
+.acts{display:flex;gap:10px}.acts .btn{flex:1}
+footer{text-align:center;color:var(--mut);font-size:13px;padding:24px 16px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="mark" viewBox="148 40 84 84">
+<circle cx="190" cy="82" r="40" fill="none" stroke="currentColor" stroke-width="1.5"/>
+<polygon points="200,80 203,83 200,86 197,83" fill="var(--mut)"/>
+<g stroke="var(--mut)" stroke-width="1.2"><line x1="176" y1="88" x2="176" y2="108"/><line x1="190" y1="88" x2="190" y2="108"/><line x1="204" y1="88" x2="204" y2="108"/><line x1="164.8" y1="95" x2="215.2" y2="95"/><line x1="167.2" y1="102" x2="212.8" y2="102"/></g>
+<path d="M162 88H218L210 108H170Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+<g transform="rotate(-18 162 88)"><path d="M162 88Q162 68 190 68Q218 68 218 88Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M172 80Q175 73 190 73" fill="none" stroke="var(--mut)" stroke-width="1.2" stroke-linecap="round"/></g>
+</symbol>
+</svg>
+
+<header>
+<svg role="img" aria-label="Pitaara logo"><use href="#mark"/></svg>
+<h1 class="word">PITAARA</h1>
+</header>
+
+<main class="wrap">
+<input id="q" class="search" type="search" placeholder="Product dhundho" aria-label="Product dhundho">
+<div id="grid" class="grid"></div>
+</main>
+
+<footer>Delhi &nbsp;|&nbsp; Order sirf WhatsApp pe</footer>
+
+<div id="bar" class="bar"><div class="bar-in">
+<div><b id="cnt">0 items</b><br><span id="sum" style="color:var(--mut);font-size:14px"></span></div>
+<button class="btn" id="open">Cart dekho</button>
+</div></div>
+
+<div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-label="Cart">
+<div class="panel">
+<h2>Aapka cart</h2>
+<div id="list"></div>
+<div class="tot"><span>Total</span><span id="tot"></span></div>
+<div class="acts"><button class="btn alt" id="close">Aur dekho</button><button class="btn" id="send">WhatsApp pe order karo</button></div>
+</div>
+</div>
+
+<script type="module">
+import { WHATSAPP, SHOP, firebaseConfig } from "./config.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+let PRODUCTS = [
+  { name: "Product 1", price: 123, desc: "abc", img: "" },
+  { name: "Product 2", price: 123, desc: "abc", img: "" },
+  { name: "Product 3", price: 123, desc: "abc", img: "" },
+  { name: "Product 4", price: 123, desc: "abc", img: "" },
+  { name: "Product 5", price: 123, desc: "abc", img: "" },
+  { name: "Product 6", price: 123, desc: "abc", img: "" }
+];
+/* Backup list: Firebase se products na aayein tabhi ye dikhti hai. */
+
+const cart = {};
+const $ = id => document.getElementById(id);
+const rs = n => "\u20B9" + n.toLocaleString("en-IN");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const basket = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M4 11h16l-2 9H6z"/><path d="M7 11a5 5 0 0 1 10 0"/></svg>';
+
+function draw() {
+  const t = $("q").value.trim().toLowerCase();
+  const items = PRODUCTS.map((p, i) => ({ p, i })).filter(x => (x.p.name + " " + x.p.desc).toLowerCase().includes(t));
+  $("grid").innerHTML = items.length ? items.map(({ p, i }) =>
+    '<article class="card"><div class="ph">' + (p.img ? '<img loading="lazy" src="' + esc(p.img) + '" alt="' + esc(p.name) + '">' : basket) +
+    '</div><div class="info"><div class="name">' + esc(p.name) + '</div><div class="desc">' + esc(p.desc) +
+    '</div><div class="price">' + rs(p.price) + '</div><button class="add" data-i="' + i + '">Cart me daalo</button></div></article>'
+  ).join("") : '<p class="empty">Is naam ka koi product nahi mila.</p>';
+}
+
+function totals() {
+  let n = 0, s = 0;
+  for (const i in cart) { n += cart[i]; s += cart[i] * PRODUCTS[i].price; }
+  return { n, s };
+}
+
+function sync() {
+  const { n, s } = totals();
+  $("bar").classList.toggle("on", n > 0);
+  $("cnt").textContent = n + (n === 1 ? " item" : " items");
+  $("sum").textContent = rs(s);
+  $("tot").textContent = rs(s);
+  $("list").innerHTML = Object.keys(cart).map(i =>
+    '<div class="row"><div><div>' + esc(PRODUCTS[i].name) + '</div><div class="desc">' + rs(PRODUCTS[i].price) +
+    '</div></div><div class="qty"><button data-d="-1" data-i="' + i + '" aria-label="Kam karo">-</button><span>' + cart[i] +
+    '</span><button data-d="1" data-i="' + i + '" aria-label="Badhao">+</button></div></div>'
+  ).join("");
+  if (!n) $("sheet").classList.remove("on");
+}
+
+function change(i, d) {
+  cart[i] = (cart[i] || 0) + d;
+  if (cart[i] <= 0) delete cart[i];
+  sync();
+}
+
+$("q").addEventListener("input", draw);
+$("grid").addEventListener("click", e => { const b = e.target.closest(".add"); if (b) change(b.dataset.i, 1); });
+$("list").addEventListener("click", e => { const b = e.target.closest("button"); if (b) change(b.dataset.i, +b.dataset.d); });
+$("open").onclick = () => $("sheet").classList.add("on");
+$("close").onclick = () => $("sheet").classList.remove("on");
+$("sheet").addEventListener("click", e => { if (e.target.id === "sheet") $("sheet").classList.remove("on"); });
+$("send").onclick = () => {
+  const { s } = totals();
+  const lines = Object.keys(cart).map(i => "- " + PRODUCTS[i].name + " x " + cart[i] + " = " + rs(cart[i] * PRODUCTS[i].price));
+  const msg = "Namaste " + SHOP + ", mujhe ye order karna hai:\n" + lines.join("\n") + "\nTotal: " + rs(s) + "\nNaam aur address:";
+  window.open("https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(msg), "_blank");
+};
+
+async function load() {
+  try {
+    const db = getFirestore(initializeApp(firebaseConfig));
+    const snap = await getDocs(collection(db, "products"));
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(p => p.name && p.available !== false)
+      .sort((x, y) => (y.order || 0) - (x.order || 0));
+    if (list.length) PRODUCTS = list;
+  } catch (e) {}
+  draw();
+  sync();
+}
+
+load();
+</script>
+</body>
+</html>
