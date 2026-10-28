@@ -48,7 +48,7 @@
 import { firebaseConfig } from "./config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, getDocs, getDoc, setDoc, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, getDoc, setDoc, updateDoc, doc, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
 const $ = id => document.getElementById(id);
@@ -102,6 +102,23 @@ function start() {
   }).catch(() => {});
 }
 
+async function adjust(o, sign) {
+  for (const i of o.items || []) {
+    const p = prods[i.id];
+    if (i.id && p && p.stock != null) {
+      await updateDoc(doc(db, "products", i.id), { stock: increment(sign * i.qty) });
+      p.stock += sign * i.qty;
+    }
+  }
+}
+
+async function setStatus(o, st) {
+  const cut = st !== "new" && st !== "cancelled", upd = { status: st };
+  if (cut && !o.stockCut) { await adjust(o, -1); upd.stockCut = true; }
+  if (!cut && o.stockCut) { await adjust(o, 1); upd.stockCut = false; }
+  await updateDoc(doc(db, "orders", o.id), upd);
+}
+
 $("list").onclick = async e => {
   const b = e.target.closest("button[data-p]"); if (!b) return;
   const o = orders.find(x => x.id === b.dataset.p); if (!o) return;
@@ -109,7 +126,7 @@ $("list").onclick = async e => {
 };
 $("list").onchange = async e => {
   const s = e.target.closest("select[data-s]"); if (!s) return;
-  try { await updateDoc(doc(db, "orders", s.dataset.s), { status: s.value }); msg("Status badal gaya"); } catch (x) { msg("Update nahi hua."); }
+  try { const o = orders.find(x => x.id === s.dataset.s); await setStatus(o, s.value); msg("Status badal gaya"); } catch (x) { msg("Update nahi hua."); }
 };
 $("flt").onchange = draw;
 

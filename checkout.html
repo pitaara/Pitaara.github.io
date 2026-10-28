@@ -94,7 +94,8 @@ async function boot() {
   lines = saved.map(l => {
     if (!l.id) return l;
     const p = prods[l.id];
-    return p && p.available !== false ? { id: l.id, name: p.name, price: Number(p.price) || 0, qty: l.qty } : null;
+    if (!p || p.available === false || (p.stock != null && p.stock <= 0)) return null;
+    return { id: l.id, name: p.name, price: Number(p.price) || 0, qty: p.stock != null ? Math.min(l.qty, p.stock) : l.qty };
   }).filter(l => l && l.qty > 0);
 }
 

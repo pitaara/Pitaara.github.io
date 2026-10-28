@@ -51,6 +51,9 @@ a{color:inherit}
 <h2 id="ft">Naya product</h2>
 <label for="n">Naam</label><input id="n" type="text" required>
 <label for="p">Daam (rupaye)</label><input id="p" type="number" min="0" step="any" required>
+<label for="mr">MRP / purana daam (optional)</label><input id="mr" type="number" min="0" step="any">
+<label for="ct">Category (jaise Sweets, Gifts)</label><input id="ct" type="text" list="cts"><datalist id="cts"></datalist>
+<label for="sk">Stock, kitne piece hain (khaali = unlimited)</label><input id="sk" type="number" min="0" step="1">
 <label for="d">Description</label><textarea id="d" rows="2"></textarea>
 <label for="ph">Photo</label><input id="ph" type="file" accept="image/*">
 <img id="pv" alt="Photo preview">
@@ -103,9 +106,10 @@ async function load() {
 }
 
 function show() {
+  $("cts").innerHTML = [...new Set(items.map(p => p.category).filter(Boolean))].map(c => '<option value="' + esc(c) + '">').join("");
   $("list").innerHTML = items.length ? items.map(p =>
     '<div class="row">' + (p.img ? '<img src="' + esc(p.img) + '" alt="">' : '<div class="ph"></div>') +
-    '<div class="grow"><div>' + esc(p.name) + '</div><div class="mut">\u20B9' + esc(p.price) + (p.available === false ? " | Chhupa hua" : "") + '</div></div>' +
+    '<div class="grow"><div>' + esc(p.name) + '</div><div class="mut">\u20B9' + esc(p.price) + (p.category ? " | " + esc(p.category) : "") + (p.stock != null ? " | Stock: " + esc(p.stock) : "") + (p.available === false ? " | Chhupa hua" : "") + '</div></div>' +
     '<div class="acts"><button class="alt sm" data-a="edit" data-id="' + p.id + '">Edit</button>' +
     '<button class="alt sm" data-a="tog" data-id="' + p.id + '">' + (p.available === false ? "Dikhao" : "Chhupao") + '</button>' +
     '<button class="alt sm" data-a="del" data-id="' + p.id + '">Delete</button></div></div>'
@@ -124,7 +128,8 @@ $("ph").onchange = async e => {
 
 $("f").onsubmit = async e => {
   e.preventDefault();
-  const data = { name: $("n").value.trim(), price: Number($("p").value) || 0, desc: $("d").value.trim(), img: photo, available: $("a").checked };
+  const data = { name: $("n").value.trim(), price: Number($("p").value) || 0, desc: $("d").value.trim(), img: photo, available: $("a").checked,
+    mrp: $("mr").value === "" ? null : Number($("mr").value), category: $("ct").value.trim(), stock: $("sk").value === "" ? null : Number($("sk").value) };
   try {
     if (editId) await setDoc(doc(db, "products", editId), data, { merge: true });
     else await addDoc(col, { ...data, order: Date.now() });
@@ -141,6 +146,7 @@ $("list").onclick = async e => {
     if (b.dataset.a === "edit") {
       editId = p.id; photo = p.img || "";
       $("n").value = p.name || ""; $("p").value = p.price ?? ""; $("d").value = p.desc || ""; $("a").checked = p.available !== false;
+      $("mr").value = p.mrp ?? ""; $("ct").value = p.category || ""; $("sk").value = p.stock ?? "";
       $("pv").src = photo; $("pv").style.display = photo ? "block" : "none";
       $("ft").textContent = "Product edit karo"; $("cancel").hidden = false; scrollTo({ top: 0, behavior: "smooth" });
     } else if (b.dataset.a === "tog") {
