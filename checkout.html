@@ -25,6 +25,8 @@
 <form id="f" hidden>
 <h2>Order summary</h2>
 <div id="sum"></div>
+<div class="row" style="border:0"><input id="cp" type="text" placeholder="Coupon code" autocapitalize="characters" style="flex:1"><button type="button" class="alt" id="cpb">Lagao</button></div>
+<p class="mut" id="cpm"></p>
 
 <h2>Delivery details</h2>
 <label for="nm">Naam</label><input id="nm" type="text" required autocomplete="name">
@@ -66,19 +68,22 @@ let cfg = { deliveryCharge: 30, freeAbove: 500, upiId: "", shopOpen: true };
 function msg(t) { const m = $("m"); m.textContent = t; m.style.display = "block"; clearTimeout(msg.t); msg.t = setTimeout(() => m.style.display = "none", 4500); }
 function view(w) { for (const id of ["empty", "login", "f", "done"]) $(id).hidden = id !== w; }
 
+let applied = null;
 function totals() {
   const sub = lines.reduce((a, l) => a + l.price * l.qty, 0);
-  const free = Number(cfg.freeAbove) || 0;
-  const del = sub >= free ? 0 : Number(cfg.deliveryCharge) || 0;
-  return { sub, del, total: sub + del };
+  let d = 0;
+  if (applied) { d = applied.type === "percent" ? Math.round(sub * applied.value / 100) : applied.value; d = Math.min(d, sub); }
+  const net = sub - d, free = Number(cfg.freeAbove) || 0;
+  const del = net >= free ? 0 : Number(cfg.deliveryCharge) || 0;
+  return { sub, d, del, total: net + del };
 }
 
 function render() {
   const t = totals(), free = Number(cfg.freeAbove) || 0;
   $("sum").innerHTML = lines.map(l => '<div class="row"><span>' + esc(l.name) + ' x ' + l.qty + '</span><span>' + rs(l.price * l.qty) + '</span></div>').join("") +
-    '<div class="row"><span>Delivery</span><span>' + (t.del ? rs(t.del) : "Free") + '</span></div>' +
+    (t.d ? '<div class="row"><span>Coupon ' + esc(applied.code) + '</span><span>- ' + rs(t.d) + '</span></div>' : "") + '<div class="row"><span>Delivery</span><span>' + (t.del ? rs(t.del) : "Free") + '</span></div>' +
     '<div class="row"><b>Total</b><b>' + rs(t.total) + '</b></div>' +
-    (t.del && free > 0 ? '<p class="mut">' + rs(free - t.sub) + ' ka aur kharidoge to delivery free.</p>' : "") +
+    (t.del && free > 0 ? '<p class="mut">' + rs(free - t.sub + t.d) + ' ka aur kharidoge to delivery free.</p>' : "") +
     '<a class="mut" href="index.html">Cart badlo</a>';
   $("upiopt").hidden = !cfg.upiId;
   $("upiid").textContent = cfg.upiId;
@@ -99,6 +104,18 @@ async function boot() {
   }).filter(l => l && l.qty > 0);
 }
 
+$("cpb").onclick = () => {
+  const code = $("cp").value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const sub = lines.reduce((a, l) => a + l.price * l.qty, 0);
+  const c = code ? (cfg.coupons || []).find(x => x.code === code && x.active) : null;
+  applied = null;
+  if (!code) $("cpm").textContent = "";
+  else if (!c) $("cpm").textContent = "Ye coupon sahi nahi hai.";
+  else if (c.min && sub < c.min) $("cpm").textContent = "Is coupon ke liye kam se kam " + rs(c.min) + " ka order chahiye.";
+  else { applied = c; $("cpm").textContent = "Coupon lag gaya."; }
+  render();
+};
+
 document.querySelectorAll("input[name=pay]").forEach(r => r.onchange = () => {
   $("upi").hidden = document.querySelector("input[name=pay]:checked").value !== "upi";
 });
@@ -118,7 +135,7 @@ $("f").onsubmit = async e => {
     uid: user.uid, email: user.email || "", name: $("nm").value.trim(), phone, address: $("ad").value.trim(),
     landmark: $("lm").value.trim(), pincode: pin,
     items: lines.map(l => ({ id: l.id || "", name: l.name, price: l.price, qty: l.qty })),
-    subtotal: t.sub, delivery: t.del, total: t.total, payment: pay, utr: pay === "upi" ? utr : "",
+    subtotal: t.sub, coupon: applied ? applied.code : "", discount: t.d, delivery: t.del, total: t.total, payment: pay, utr: pay === "upi" ? utr : "",
     paid: false, status: "new", createdAt: Date.now()
   };
   $("go").disabled = true;
