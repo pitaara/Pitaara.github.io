@@ -68,7 +68,7 @@ footer{text-align:center;color:var(--mut);font-size:13px;padding:24px 16px}
 <div id="grid" class="grid"></div>
 </main>
 
-<footer>Delhi &nbsp;|&nbsp; Order sirf WhatsApp pe</footer>
+<footer>Delhi &nbsp;|&nbsp; <a href="orders.html" style="color:inherit">Mere orders</a></footer>
 
 <div id="bar" class="bar"><div class="bar-in">
 <div><b id="cnt">0 items</b><br><span id="sum" style="color:var(--mut);font-size:14px"></span></div>
@@ -80,7 +80,7 @@ footer{text-align:center;color:var(--mut);font-size:13px;padding:24px 16px}
 <h2>Aapka cart</h2>
 <div id="list"></div>
 <div class="tot"><span>Total</span><span id="tot"></span></div>
-<div class="acts"><button class="btn alt" id="close">Aur dekho</button><button class="btn" id="send">WhatsApp pe order karo</button></div>
+<div class="acts"><button class="btn alt" id="close">Aur dekho</button><button class="btn" id="send">Checkout karo</button></div>
 </div>
 </div>
 
@@ -123,6 +123,7 @@ function totals() {
 
 function sync() {
   const { n, s } = totals();
+  save();
   $("bar").classList.toggle("on", n > 0);
   $("cnt").textContent = n + (n === 1 ? " item" : " items");
   $("sum").textContent = rs(s);
@@ -133,6 +134,21 @@ function sync() {
     '</span><button data-d="1" data-i="' + i + '" aria-label="Badhao">+</button></div></div>'
   ).join("");
   if (!n) $("sheet").classList.remove("on");
+}
+
+function save() {
+  try {
+    localStorage.setItem("pitaara_cart", JSON.stringify(Object.keys(cart).map(i => ({ id: PRODUCTS[i].id || "", name: PRODUCTS[i].name, price: PRODUCTS[i].price, qty: cart[i] }))));
+  } catch (e) {}
+}
+
+function restore() {
+  try {
+    JSON.parse(localStorage.getItem("pitaara_cart") || "[]").forEach(l => {
+      const i = PRODUCTS.findIndex(p => (l.id && p.id === l.id) || (!l.id && p.name === l.name));
+      if (i >= 0) cart[i] = l.qty;
+    });
+  } catch (e) {}
 }
 
 function change(i, d) {
@@ -148,10 +164,8 @@ $("open").onclick = () => $("sheet").classList.add("on");
 $("close").onclick = () => $("sheet").classList.remove("on");
 $("sheet").addEventListener("click", e => { if (e.target.id === "sheet") $("sheet").classList.remove("on"); });
 $("send").onclick = () => {
-  const { s } = totals();
-  const lines = Object.keys(cart).map(i => "- " + PRODUCTS[i].name + " x " + cart[i] + " = " + rs(cart[i] * PRODUCTS[i].price));
-  const msg = "Namaste " + SHOP + ", mujhe ye order karna hai:\n" + lines.join("\n") + "\nTotal: " + rs(s) + "\nNaam aur address:";
-  window.open("https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(msg), "_blank");
+  save();
+  location.href = "checkout.html";
 };
 
 async function load() {
@@ -163,6 +177,7 @@ async function load() {
       .sort((x, y) => (y.order || 0) - (x.order || 0));
     if (list.length) PRODUCTS = list;
   } catch (e) {}
+  restore();
   draw();
   sync();
 }

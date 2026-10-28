@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Pitaara admin | Orders</title>
+<link rel="stylesheet" href="app.css">
+<style>.tabs{display:flex;gap:8px;margin:12px 0}.tabs .on{background:var(--fg);color:var(--bg)}</style>
+</head>
+<body>
+<div class="wrap">
+<h1>PITAARA ADMIN</h1>
+<p class="mut"><a href="admin.html">Products</a> &nbsp;|&nbsp; <b>Orders aur settings</b></p>
+<div id="m" role="status"></div>
+
+<div id="out"><p class="mut">Login karo. Sirf approved Gmail se hi chalega.</p><button id="in">Google se login</button></div>
+
+<div id="app" hidden>
+<div class="row"><span class="mut" id="who"></span><button class="alt sm" id="exit">Logout</button></div>
+<div class="tabs"><button class="alt on" id="t1">Orders</button><button class="alt" id="t2">Settings</button></div>
+
+<section id="s1">
+<p class="mut" id="sumr"></p>
+<select id="flt" aria-label="Filter">
+<option value="open">Chalu orders</option>
+<option value="new">Naye</option>
+<option value="delivered">Delivered</option>
+<option value="cancelled">Cancelled</option>
+<option value="all">Sab</option>
+</select>
+<div id="list"></div>
+</section>
+
+<section id="s2" hidden>
+<form id="sf">
+<label for="su">UPI ID (jaise name@upi)</label><input id="su" type="text" autocapitalize="off">
+<label for="sd">Delivery charge (rupaye)</label><input id="sd" type="number" min="0" step="any">
+<label for="sa">Is amount ke upar delivery free (rupaye)</label><input id="sa" type="number" min="0" step="any">
+<label class="chk"><input id="so" type="checkbox" checked> Dukaan abhi khuli hai (orders le rahi hai)</label>
+<button type="submit">Save karo</button>
+</form>
+</section>
+</div>
+</div>
+
+<script type="module">
+import { firebaseConfig } from "./config.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, getDoc, setDoc, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+const $ = id => document.getElementById(id);
+const rs = n => "\u20B9" + Number(n).toLocaleString("en-IN");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const STATUS = [["new", "Naya"], ["confirmed", "Confirmed"], ["packed", "Packed"], ["out", "Delivery pe nikla"], ["delivered", "Delivered"], ["cancelled", "Cancelled"]];
+let orders = [], prods = {}, first = true, started = false;
+
+function msg(t) { const m = $("m"); m.textContent = t; m.style.display = "block"; clearTimeout(msg.t); msg.t = setTimeout(() => m.style.display = "none", 4500); }
+
+function beep() {
+  try {
+    const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain();
+    o.connect(g); g.connect(c.destination); o.frequency.value = 880; g.gain.value = 0.15; o.start(); o.stop(c.currentTime + 0.3);
+  } catch (e) {}
+}
+
+function draw() {
+  const day = new Date(); day.setHours(0, 0, 0, 0);
+  const today = orders.filter(o => o.createdAt >= day.getTime() && o.status !== "cancelled");
+  $("sumr").textContent = "Aaj: " + today.length + " orders, " + rs(today.reduce((a, o) => a + (o.total || 0), 0)) + " | Naye: " + orders.filter(o => o.status === "new").length;
+  const f = $("flt").value;
+  const list = orders.filter(o => f === "all" ? true : f === "open" ? ["new", "confirmed", "packed", "out"].includes(o.status) : o.status === f);
+  $("list").innerHTML = list.length ? list.map(o => {
+    const items = o.items || [], sum = items.reduce((a, i) => a + i.price * i.qty, 0);
+    const bad = sum + (o.delivery || 0) !== o.total || items.some(i => i.id && prods[i.id] && Number(prods[i.id].price) !== i.price);
+    return '<div class="card"><div class="row" style="border:0;padding:0"><b>#' + esc(o.id.slice(0, 6).toUpperCase()) + '</b><span class="mut">' + new Date(o.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) + '</span></div>' +
+      '<p>' + esc(o.name) + ' | <a href="tel:' + esc(o.phone) + '">' + esc(o.phone) + '</a> | <a href="https://wa.me/91' + esc(o.phone) + '" target="_blank" rel="noopener">WhatsApp</a></p>' +
+      '<p class="mut">' + esc(o.address) + (o.landmark ? ", " + esc(o.landmark) : "") + ", " + esc(o.pincode) + '</p>' +
+      '<ul>' + items.map(i => '<li>' + esc(i.name) + ' x ' + esc(i.qty) + ' (' + rs(i.price) + ')</li>').join("") + '</ul>' +
+      '<div class="row"><span>Delivery ' + (o.delivery ? rs(o.delivery) : "free") + '</span><b>Total ' + rs(o.total) + '</b></div>' +
+      '<p>' + (o.payment === "upi" ? "UPI, UTR: " + esc(o.utr) : "Cash on Delivery") + ' <span class="badge">' + (o.paid ? "Paid" : "Baaki") + '</span></p>' +
+      (bad ? '<p class="mut"><b>Dhyan:</b> daam ya total abhi ke daam se match nahi karte, check karke confirm karo.</p>' : "") +
+      '<div class="acts"><select data-s="' + o.id + '" aria-label="Status">' + STATUS.map(s => '<option value="' + s[0] + '"' + (o.status === s[0] ? " selected" : "") + '>' + s[1] + '</option>').join("") + '</select>' +
+      '<button class="alt sm" data-p="' + o.id + '">' + (o.paid ? "Paid hata do" : "Paid mark karo") + '</button></div></div>';
+  }).join("") : '<p class="mut">Is filter me koi order nahi hai.</p>';
+}
+
+function start() {
+  if (started) return; started = true;
+  getDocs(collection(db, "products")).then(s => { s.forEach(d => prods[d.id] = d.data()); draw(); }).catch(() => {});
+  onSnapshot(collection(db, "orders"), snap => {
+    if (!first) snap.docChanges().forEach(c => { if (c.type === "added") { beep(); msg("Naya order aaya!"); } });
+    first = false;
+    orders = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.createdAt - a.createdAt);
+    draw();
+  }, () => msg("Orders load nahi hue. Aapka Gmail admin list me nahi hai."));
+  getDoc(doc(db, "settings", "store")).then(s => {
+    const c = s.exists() ? s.data() : {};
+    $("su").value = c.upiId || ""; $("sd").value = c.deliveryCharge ?? 30; $("sa").value = c.freeAbove ?? 500; $("so").checked = c.shopOpen !== false;
+  }).catch(() => {});
+}
+
+$("list").onclick = async e => {
+  const b = e.target.closest("button[data-p]"); if (!b) return;
+  const o = orders.find(x => x.id === b.dataset.p); if (!o) return;
+  try { await updateDoc(doc(db, "orders", o.id), { paid: !o.paid }); } catch (x) { msg("Update nahi hua."); }
+};
+$("list").onchange = async e => {
+  const s = e.target.closest("select[data-s]"); if (!s) return;
+  try { await updateDoc(doc(db, "orders", s.dataset.s), { status: s.value }); msg("Status badal gaya"); } catch (x) { msg("Update nahi hua."); }
+};
+$("flt").onchange = draw;
+
+$("t1").onclick = () => { $("s1").hidden = false; $("s2").hidden = true; $("t1").classList.add("on"); $("t2").classList.remove("on"); };
+$("t2").onclick = () => { $("s1").hidden = true; $("s2").hidden = false; $("t2").classList.add("on"); $("t1").classList.remove("on"); };
+
+$("sf").onsubmit = async e => {
+  e.preventDefault();
+  try {
+    await setDoc(doc(db, "settings", "store"), { upiId: $("su").value.trim(), deliveryCharge: Number($("sd").value) || 0, freeAbove: Number($("sa").value) || 0, shopOpen: $("so").checked }, { merge: true });
+    msg("Settings save ho gayi");
+  } catch (x) { msg("Save nahi hua. Aapka Gmail admin list me nahi hai."); }
+};
+
+$("in").onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(() => msg("Login nahi hua. Dobara try karo."));
+$("exit").onclick = () => signOut(auth);
+onAuthStateChanged(auth, u => {
+  $("out").hidden = !!u; $("app").hidden = !u;
+  if (u) { $("who").textContent = u.email; start(); }
+});
+</script>
+</body>
+</html>

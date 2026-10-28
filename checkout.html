@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Checkout | Pitaara</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="wrap">
+<a href="index.html" class="mut">&larr; Dukaan pe wapas</a>
+<h1>CHECKOUT</h1>
+<div id="m" role="status"></div>
+
+<div id="empty" hidden><p>Aapka cart khaali hai.</p><a class="btn" href="index.html">Products dekho</a></div>
+<div id="login" hidden><p>Order karne ke liye login karo.</p><button id="in">Google se login</button></div>
+<div id="done" hidden>
+<h2>Order mil gaya, shukriya!</h2>
+<p>Order number: <b id="oid"></b></p>
+<p class="mut" id="dmsg"></p>
+<a class="btn" href="orders.html">Mere orders</a>
+</div>
+
+<form id="f" hidden>
+<h2>Order summary</h2>
+<div id="sum"></div>
+
+<h2>Delivery details</h2>
+<label for="nm">Naam</label><input id="nm" type="text" required autocomplete="name">
+<label for="ph">Phone number</label><input id="ph" type="tel" required autocomplete="tel" inputmode="numeric">
+<label for="ad">Pura address</label><textarea id="ad" rows="2" required autocomplete="street-address"></textarea>
+<label for="lm">Landmark (optional)</label><input id="lm" type="text">
+<label for="pin">Pincode</label><input id="pin" type="tel" required maxlength="6" inputmode="numeric" autocomplete="postal-code">
+
+<h2>Payment</h2>
+<label class="pay"><input type="radio" name="pay" value="cod" checked> Cash on Delivery</label>
+<label class="pay" id="upiopt"><input type="radio" name="pay" value="upi"> UPI se pay karo</label>
+<div id="upi" class="card" hidden>
+<p>UPI ID: <b id="upiid"></b></p>
+<p>Amount: <b id="uam"></b></p>
+<a class="btn alt" id="ulink" href="#">UPI app kholo</a>
+<label for="utr">Transaction ID (UTR)</label><input id="utr" type="text">
+<p class="mut">Pay karne ke baad transaction ID yahan daalo. Hum verify karke order confirm karenge.</p>
+</div>
+
+<label class="chk"><input id="sv" type="checkbox" checked> Ye details agli baar ke liye save rakho</label>
+<button type="submit" id="go">Order karo</button>
+<p class="mut">Aapka naam, phone aur address sirf delivery ke liye use honge.</p>
+</form>
+</div>
+
+<script type="module">
+import { SHOP, firebaseConfig } from "./config.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, getDoc, addDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+const $ = id => document.getElementById(id);
+const rs = n => "\u20B9" + Number(n).toLocaleString("en-IN");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let user = null, lines = [], placed = false;
+let cfg = { deliveryCharge: 30, freeAbove: 500, upiId: "", shopOpen: true };
+
+function msg(t) { const m = $("m"); m.textContent = t; m.style.display = "block"; clearTimeout(msg.t); msg.t = setTimeout(() => m.style.display = "none", 4500); }
+function view(w) { for (const id of ["empty", "login", "f", "done"]) $(id).hidden = id !== w; }
+
+function totals() {
+  const sub = lines.reduce((a, l) => a + l.price * l.qty, 0);
+  const free = Number(cfg.freeAbove) || 0;
+  const del = sub >= free ? 0 : Number(cfg.deliveryCharge) || 0;
+  return { sub, del, total: sub + del };
+}
+
+function render() {
+  const t = totals(), free = Number(cfg.freeAbove) || 0;
+  $("sum").innerHTML = lines.map(l => '<div class="row"><span>' + esc(l.name) + ' x ' + l.qty + '</span><span>' + rs(l.price * l.qty) + '</span></div>').join("") +
+    '<div class="row"><span>Delivery</span><span>' + (t.del ? rs(t.del) : "Free") + '</span></div>' +
+    '<div class="row"><b>Total</b><b>' + rs(t.total) + '</b></div>' +
+    (t.del && free > 0 ? '<p class="mut">' + rs(free - t.sub) + ' ka aur kharidoge to delivery free.</p>' : "") +
+    '<a class="mut" href="index.html">Cart badlo</a>';
+  $("upiopt").hidden = !cfg.upiId;
+  $("upiid").textContent = cfg.upiId;
+  $("uam").textContent = rs(t.total);
+  $("ulink").href = "upi://pay?pa=" + encodeURIComponent(cfg.upiId) + "&pn=" + encodeURIComponent(SHOP) + "&am=" + t.total + "&cu=INR&tn=" + encodeURIComponent(SHOP + " order");
+}
+
+async function boot() {
+  try { const s = await getDoc(doc(db, "settings", "store")); if (s.exists()) cfg = { ...cfg, ...s.data() }; } catch (e) {}
+  let saved = [], prods = {};
+  try { saved = JSON.parse(localStorage.getItem("pitaara_cart") || "[]"); } catch (e) {}
+  try { (await getDocs(collection(db, "products"))).forEach(d => prods[d.id] = d.data()); } catch (e) {}
+  lines = saved.map(l => {
+    if (!l.id) return l;
+    const p = prods[l.id];
+    return p && p.available !== false ? { id: l.id, name: p.name, price: Number(p.price) || 0, qty: l.qty } : null;
+  }).filter(l => l && l.qty > 0);
+}
+
+document.querySelectorAll("input[name=pay]").forEach(r => r.onchange = () => {
+  $("upi").hidden = document.querySelector("input[name=pay]:checked").value !== "upi";
+});
+
+$("in").onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(() => msg("Login nahi hua. Dobara try karo."));
+
+$("f").onsubmit = async e => {
+  e.preventDefault();
+  if (!cfg.shopOpen) return msg("Dukaan abhi band hai. Thodi der baad try karo.");
+  const pay = document.querySelector("input[name=pay]:checked").value;
+  const phone = $("ph").value.replace(/\D/g, "").slice(-10), pin = $("pin").value.trim(), utr = $("utr").value.trim();
+  if (phone.length !== 10) return msg("10 digit ka phone number daalo.");
+  if (!/^\d{6}$/.test(pin)) return msg("6 digit ka pincode daalo.");
+  if (pay === "upi" && utr.length < 6) return msg("UPI transaction ID daalo.");
+  const t = totals();
+  const data = {
+    uid: user.uid, email: user.email || "", name: $("nm").value.trim(), phone, address: $("ad").value.trim(),
+    landmark: $("lm").value.trim(), pincode: pin,
+    items: lines.map(l => ({ id: l.id || "", name: l.name, price: l.price, qty: l.qty })),
+    subtotal: t.sub, delivery: t.del, total: t.total, payment: pay, utr: pay === "upi" ? utr : "",
+    paid: false, status: "new", createdAt: Date.now()
+  };
+  $("go").disabled = true;
+  try {
+    const r = await addDoc(collection(db, "orders"), data);
+    placed = true;
+    if ($("sv").checked) {
+      try { await setDoc(doc(db, "users", user.uid), { name: data.name, phone, address: data.address, landmark: data.landmark, pincode: pin, email: data.email }, { merge: true }); } catch (x) {}
+    }
+    try { localStorage.removeItem("pitaara_cart"); } catch (x) {}
+    $("oid").textContent = r.id.slice(0, 6).toUpperCase();
+    $("dmsg").textContent = pay === "upi" ? "Aapka UPI payment verify hone ke baad order confirm hoga." : "Delivery ke time cash dena hoga.";
+    view("done");
+  } catch (err) { msg("Order nahi ho paya. Dobara try karo."); $("go").disabled = false; }
+};
+
+boot().then(() => onAuthStateChanged(auth, async u => {
+  user = u;
+  if (placed) return;
+  if (!lines.length) return view("empty");
+  if (!u) return view("login");
+  let p = {};
+  try { const s = await getDoc(doc(db, "users", u.uid)); if (s.exists()) p = s.data(); } catch (e) {}
+  $("nm").value = p.name || u.displayName || ""; $("ph").value = p.phone || "";
+  $("ad").value = p.address || ""; $("lm").value = p.landmark || ""; $("pin").value = p.pincode || "";
+  render(); view("f");
+}));
+</script>
+</body>
+</html>
