@@ -1,0 +1,14 @@
+{
+  "name": "Pitaara",
+  "short_name": "Pitaara",
+  "description": "Pitaara, Delhi. Products dekho aur apna order do.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff3e8",
+  "theme_color": "#8e1b5e",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
