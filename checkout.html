@@ -34,6 +34,11 @@
 <label for="ad">Pura address</label><textarea id="ad" rows="2" required autocomplete="street-address"></textarea>
 <label for="lm">Landmark (optional)</label><input id="lm" type="text">
 <label for="pin">Pincode</label><input id="pin" type="tel" required maxlength="6" inputmode="numeric" autocomplete="postal-code">
+<p class="mut" id="pinm"></p>
+<div id="slotbox" hidden>
+<label for="dy">Delivery kab</label><select id="dy"><option>Aaj</option><option>Kal</option></select>
+<label for="sl">Time slot</label><select id="sl"></select>
+</div>
 
 <h2>Payment</h2>
 <label class="pay"><input type="radio" name="pay" value="cod" checked> Cash on Delivery</label>
@@ -54,11 +59,13 @@
 
 <script type="module">
 import { SHOP, firebaseConfig } from "./config.js";
+import { applyTheme } from "./theme.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, getDocs, getDoc, addDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig), auth = getAuth(app), db = getFirestore(app);
+try { applyTheme(localStorage.getItem("pitaara_theme") || "diwali"); } catch (e) { applyTheme("diwali"); }
 const $ = id => document.getElementById(id);
 const rs = n => "\u20B9" + Number(n).toLocaleString("en-IN");
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -66,6 +73,11 @@ let user = null, lines = [], placed = false;
 let cfg = { deliveryCharge: 30, freeAbove: 500, upiId: "", shopOpen: true };
 
 function msg(t) { const m = $("m"); m.textContent = t; m.style.display = "block"; clearTimeout(msg.t); msg.t = setTimeout(() => m.style.display = "none", 4500); }
+function pinBad() { const pins = cfg.deliveryPins || [], pin = $("pin").value.trim(); return pins.length > 0 && /^\d{6}$/.test(pin) && !pins.includes(pin); }
+function minBad() { const need = Number(cfg.minOrder) || 0, t = totals(); return need > 0 && t.sub - t.d < need; }
+function check() { $("pinm").textContent = pinBad() ? "Is pincode pe abhi delivery nahi hoti." : ""; $("go").disabled = pinBad() || minBad(); }
+$("pin").addEventListener("input", check);
+
 function view(w) { for (const id of ["empty", "login", "f", "done"]) $(id).hidden = id !== w; }
 
 let applied = null;
@@ -84,7 +96,11 @@ function render() {
     (t.d ? '<div class="row"><span>Coupon ' + esc(applied.code) + '</span><span>- ' + rs(t.d) + '</span></div>' : "") + '<div class="row"><span>Delivery</span><span>' + (t.del ? rs(t.del) : "Free") + '</span></div>' +
     '<div class="row"><b>Total</b><b>' + rs(t.total) + '</b></div>' +
     (t.del && free > 0 ? '<p class="mut">' + rs(free - t.sub + t.d) + ' ka aur kharidoge to delivery free.</p>' : "") +
+    (Number(cfg.minOrder) > 0 && t.sub - t.d < Number(cfg.minOrder) ? '<p class="mut"><b>Kam se kam ' + rs(cfg.minOrder) + ' ka order chahiye.</b> Aur ' + rs(Number(cfg.minOrder) - (t.sub - t.d)) + ' ka saaman jodo.</p>' : "") +
     '<a class="mut" href="index.html">Cart badlo</a>';
+  $("slotbox").hidden = !(cfg.slots && cfg.slots.length);
+  if (!$("sl").options.length) $("sl").innerHTML = (cfg.slots || []).map(x => '<option>' + esc(x) + '</option>').join("");
+  check();
   $("upiopt").hidden = !cfg.upiId;
   $("upiid").textContent = cfg.upiId;
   $("uam").textContent = rs(t.total);
@@ -92,7 +108,7 @@ function render() {
 }
 
 async function boot() {
-  try { const s = await getDoc(doc(db, "settings", "store")); if (s.exists()) cfg = { ...cfg, ...s.data() }; } catch (e) {}
+  try { const s = await getDoc(doc(db, "settings", "store")); if (s.exists()) { cfg = { ...cfg, ...s.data() }; applyTheme(cfg.theme || "diwali"); } } catch (e) {}
   let saved = [], prods = {};
   try { saved = JSON.parse(localStorage.getItem("pitaara_cart") || "[]"); } catch (e) {}
   try { (await getDocs(collection(db, "products"))).forEach(d => prods[d.id] = d.data()); } catch (e) {}
@@ -130,10 +146,13 @@ $("f").onsubmit = async e => {
   if (phone.length !== 10) return msg("10 digit ka phone number daalo.");
   if (!/^\d{6}$/.test(pin)) return msg("6 digit ka pincode daalo.");
   if (pay === "upi" && utr.length < 6) return msg("UPI transaction ID daalo.");
+  if (minBad()) return msg("Order amount minimum se kam hai.");
+  if (pinBad()) return msg("Is pincode pe abhi delivery nahi hoti.");
+  const slot = cfg.slots && cfg.slots.length ? $("dy").value + ", " + $("sl").value : "";
   const t = totals();
   const data = {
     uid: user.uid, email: user.email || "", name: $("nm").value.trim(), phone, address: $("ad").value.trim(),
-    landmark: $("lm").value.trim(), pincode: pin,
+    landmark: $("lm").value.trim(), pincode: pin, slot,
     items: lines.map(l => ({ id: l.id || "", name: l.name, price: l.price, qty: l.qty })),
     subtotal: t.sub, coupon: applied ? applied.code : "", discount: t.d, delivery: t.del, total: t.total, payment: pay, utr: pay === "upi" ? utr : "",
     paid: false, status: "new", createdAt: Date.now()
@@ -149,7 +168,7 @@ $("f").onsubmit = async e => {
     $("oid").textContent = r.id.slice(0, 6).toUpperCase();
     $("dmsg").textContent = pay === "upi" ? "Aapka UPI payment verify hone ke baad order confirm hoga." : "Delivery ke time cash dena hoga.";
     view("done");
-  } catch (err) { msg("Order nahi ho paya. Dobara try karo."); $("go").disabled = false; }
+  } catch (err) { msg("Order nahi ho paya. Dobara try karo."); check(); }
 };
 
 boot().then(() => onAuthStateChanged(auth, async u => {

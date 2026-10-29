@@ -8,7 +8,7 @@ h2{font-size:17px;font-weight:500;margin:22px 0 6px}
 a{color:inherit}
 label{display:block;font-size:14px;color:var(--mut);margin:12px 0 4px}
 input[type=text],input[type=tel],input[type=number],textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
-button,.btn{font:inherit;cursor:pointer;padding:11px 18px;border:0;border-radius:8px;background:var(--fg);color:var(--bg);text-decoration:none;display:inline-block}
+button,.btn{font:inherit;cursor:pointer;padding:11px 18px;border:0;border-radius:8px;background:var(--p,var(--fg));color:var(--pc,var(--bg));text-decoration:none;display:inline-block}
 button:disabled{opacity:.5}
 .alt{background:transparent;color:var(--fg);border:1px solid var(--line)}
 .sm{padding:6px 10px;font-size:13px}

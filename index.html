@@ -4,52 +4,139 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pitaara</title>
-<meta name="description" content="Pitaara, Delhi. Products dekho aur seedha WhatsApp pe order karo.">
-<meta name="theme-color" content="#111111">
+<meta name="description" content="Pitaara, Delhi. Products dekho aur apna order do.">
+<meta name="theme-color" content="#8e1b5e">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=Kalam&display=swap">
 <style>
-:root{--bg:#fff;--fg:#111;--mut:#6b6b6b;--line:#e3e3e3;--card:#f5f5f5}
-@media(prefers-color-scheme:dark){:root{--bg:#111;--fg:#f2f2f2;--mut:#9a9a9a;--line:#2c2c2c;--card:#1b1b1b}}
+:root{--p:#8e1b5e;--p2:#b5174f;--a:#f57c00;--bg2:#fff3e8;--ink:#2a1020;--soft:#fde6d3;--mut:#7a6670;--line:#f0dccf}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5;padding-bottom:96px}
-header{text-align:center;padding:28px 16px 18px;border-bottom:1px solid var(--line)}
-header svg{width:84px;height:84px}
-.word{font-size:24px;letter-spacing:.4em;margin:6px 0 0 .4em;font-weight:400}
-.wrap{max-width:960px;margin:0 auto;padding:16px}
-.search{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);font-size:16px}
-.search:focus,button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-top:16px}
-.card{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
-.ph{aspect-ratio:1;background:var(--card);display:grid;place-items:center;color:var(--mut)}
-.ph img{width:100%;height:100%;object-fit:cover}
-.ph svg{width:44px;height:44px}
-.info{padding:10px 12px 12px;display:flex;flex-direction:column;gap:2px;flex:1}
-.name{font-size:15px;font-weight:500}
-.desc{font-size:13px;color:var(--mut)}
-.price{font-size:16px;margin:6px 0 8px}
-button{font:inherit;cursor:pointer}
-.add{margin-top:auto;width:100%;padding:10px;border:0;border-radius:8px;background:var(--fg);color:var(--bg);font-size:14px}
-.bn{background:var(--fg);color:var(--bg);text-align:center;padding:9px 16px;font-size:14px}
-.chips{display:flex;gap:8px;overflow-x:auto;margin-top:12px;padding-bottom:2px}.chip{flex:none;padding:7px 14px;border:1px solid var(--line);border-radius:99px;background:var(--bg);color:var(--fg);font-size:14px}.chip.on{background:var(--fg);color:var(--bg)}.mrp{color:var(--mut);font-size:13px;font-weight:400}.off{font-size:12px;color:var(--mut)}.add:disabled{opacity:.45;cursor:not-allowed}
-.empty{color:var(--mut);text-align:center;padding:40px 0;grid-column:1/-1}
-.bar{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:none}
-.bar.on{display:block}
-.bar-in{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.bar b{font-weight:500}
-.btn{padding:11px 18px;border:0;border-radius:8px;background:var(--fg);color:var(--bg);font-size:15px}
-.btn.alt{background:transparent;color:var(--fg);border:1px solid var(--line)}
-.sheet{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;z-index:5}
-.sheet.on{display:flex}
-.panel{background:var(--bg);width:100%;max-width:560px;margin:0 auto;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:80vh;overflow:auto}
-.panel h2{font-size:18px;font-weight:500;margin:0 0 10px}
-.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
-.qty{display:flex;align-items:center;gap:10px}
-.qty button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:16px}
-.tot{display:flex;justify-content:space-between;padding:14px 0;font-weight:500}
-.acts{display:flex;gap:10px}.acts .btn{flex:1}
-footer{text-align:center;color:var(--mut);font-size:13px;padding:24px 16px}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg2);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.4;padding-bottom:90px}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+[hidden]{display:none!important}
+.top{position:sticky;top:0;z-index:10;background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 12px}
+.hrow{display:flex;align-items:center;gap:10px}
+.lg{width:46px;height:46px;flex:none;color:#fff;--mut:rgba(255,255,255,.75)}
+.hn{flex:1;min-width:0}
+.tg{font-size:11px;opacity:.92}
+.hn h1{margin:0;font-size:19px;font-weight:800;letter-spacing:.18em}
+.hb{display:flex;flex-direction:column;gap:5px}
+.gb{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.45);border-radius:8px;padding:4px 14px;font-size:12px;font-weight:700;color:#fff}
+.sb{margin-top:10px;display:flex;align-items:center;gap:8px;background:#fff;border-radius:12px;padding:0 10px 0 12px;color:var(--ink)}
+.sb svg{width:18px;height:18px;flex:none;color:var(--mut)}
+.sb input{flex:1;border:0;outline:0;padding:12px 0;font:inherit;font-size:15px;background:none;color:var(--ink);min-width:0}
+.sb button{font-size:22px;line-height:1;color:var(--mut);padding:0 4px}
+.bn{background:var(--a);color:#fff;text-align:center;padding:8px 14px;font-size:13px;font-weight:700}
+main{max-width:720px;margin:0 auto;padding:0 14px}
+.hero{position:relative;margin-top:14px;border-radius:20px;overflow:hidden;background:linear-gradient(135deg,var(--p2),var(--a));color:#fff;padding:22px 20px}
+.hero::after{content:"";position:absolute;right:-30px;top:-30px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.45),rgba(255,255,255,0) 70%)}
+.hc{position:relative;z-index:1;max-width:72%}
+.kal{font-family:Kalam,cursive;margin:0;font-size:15px}
+.hero h2{margin:2px 0 6px;font-size:26px;font-weight:800;line-height:1.15}
+.hero p.hs2{margin:0 0 14px;font-size:13px}
+.wb{background:#fff;color:var(--p);font-weight:800;font-size:13px;padding:9px 18px;border-radius:10px}
+.tor{display:none;height:20px;margin:-22px -20px 14px;background:radial-gradient(circle at 12px 8px,#ffd54f 5px,transparent 6px) 0 0/26px 20px repeat-x}
+.fest .tor{display:block}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.steps div{background:#fff;border-radius:12px;padding:8px;font-size:12px;font-weight:600;display:flex;gap:6px;align-items:center}
+.steps b{flex:none;width:20px;height:20px;border-radius:50%;background:var(--soft);color:var(--p);display:grid;place-items:center;font-size:11px}
+.sec{margin-top:20px;scroll-margin-top:140px}
+.pad{background:var(--soft);border-radius:18px;padding:12px}
+.sh2{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sh2 h3{margin:0;font-size:17px;font-weight:800;color:var(--p)}
+.sw,.lk{font-size:12px;font-weight:700;color:var(--p)}
+.hs{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.hs::-webkit-scrollbar{display:none}
+.hs>*{flex:none;scroll-snap-align:start}
+.tc{width:172px}
+.cg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ct,.bt{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
+.bt{width:112px;background:#fff;border:2px solid transparent;border-radius:14px;padding:10px 8px;box-shadow:0 2px 10px rgba(120,40,80,.08)}
+.ci{display:grid;place-items:center;width:100%;aspect-ratio:1;border-radius:14px;overflow:hidden;background:#fff;color:var(--p);border:2px solid transparent}
+.bt .ci{height:64px;aspect-ratio:auto;border-radius:10px;background:var(--soft)}
+.ci img{width:100%;height:100%;object-fit:cover}
+.ct.on .ci,.bt.on{border-color:var(--p)}
+.ct b,.bt b{font-size:12px;font-weight:700;line-height:1.2}
+.ct small,.bt small{font-size:11px;color:var(--mut)}
+.ctl{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;font-weight:600}
+.ctl select{border:1px solid var(--line);border-radius:10px;padding:7px 10px;font:inherit;font-size:13px;background:#fff;color:var(--ink)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:6px 14px;border-radius:99px;background:#fff;border:1px solid var(--line);font-size:13px;font-weight:600}
+.chip small{color:var(--mut)}
+.chip.on{background:var(--p);border-color:var(--p);color:#fff}
+.chip.on small{color:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:8px}
+@media(min-width:560px){.grid{grid-template-columns:repeat(3,1fr)}}
+.card{background:#fff;border-radius:16px;padding:8px;box-shadow:0 2px 10px rgba(120,40,80,.08);display:flex;flex-direction:column;gap:4px}
+.im{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--soft);cursor:pointer}
+.im img{width:100%;height:100%;object-fit:cover;display:block}
+.ph{display:grid;place-items:center;width:100%;height:100%;color:var(--p);opacity:.6}
+.bd{position:absolute;top:0;left:0;background:var(--a);color:#fff;font-weight:800;font-size:11px;padding:4px 9px;border-radius:0 0 12px 0}
+.sh{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;background:#fff;color:var(--p);display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.bs{position:absolute;left:0;bottom:8px;background:var(--p);color:#fff;font-size:10px;font-weight:800;letter-spacing:.04em;padding:3px 8px;border-radius:0 8px 8px 0}
+.nm{font-size:14px;font-weight:700;line-height:1.25;cursor:pointer;min-height:35px}
+.un{font-size:12px;color:var(--mut)}
+.pr{display:flex;justify-content:space-between;align-items:flex-end;gap:6px;margin-top:2px}
+.pr b{display:block;font-size:17px;font-weight:800;color:var(--p)}
+.pr s{font-size:12px;color:var(--mut)}
+.add{background:var(--p);color:#fff;border-radius:10px;padding:9px 16px;font-weight:800;font-size:13px;letter-spacing:.04em}
+.add:disabled{opacity:.45;cursor:not-allowed;padding:9px 8px;font-size:11px}
+.stp{display:inline-flex;align-items:center;border:1.5px solid var(--p);border-radius:10px;overflow:hidden}
+.stp button{width:30px;height:34px;font-size:18px;font-weight:800;color:var(--p)}
+.stp span{min-width:22px;text-align:center;font-weight:800;font-size:14px}
+.empty{grid-column:1/-1;text-align:center;color:var(--mut);padding:30px 0}
+footer{text-align:center;color:var(--mut);padding:26px 16px 10px;font-family:Kalam,cursive;font-size:17px}
+footer small{display:block;font-family:inherit;font-size:13px;margin-top:6px}
+footer a{color:inherit}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:15;background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-between;align-items:center;gap:10px}
+.bar b{font-weight:800}
+.bar div div{font-size:13px;opacity:.92}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;z-index:30}
+.ov.on{display:flex}
+.pn{background:#fff;width:100%;max-width:560px;margin:0 auto;border-radius:20px 20px 0 0;max-height:92vh;overflow:auto;padding:0 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.ph2{position:sticky;top:0;background:#fff;display:flex;justify-content:space-between;align-items:center;padding:14px 0 10px;z-index:2}
+.ph2 h3{margin:0;font-size:17px;font-weight:800}
+.x{width:30px;height:30px;border-radius:50%;background:var(--soft);font-size:18px;line-height:1}
+.gw{position:relative}
+.gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;border-radius:16px;scrollbar-width:none}
+.gal::-webkit-scrollbar{display:none}
+.gal>div{flex:none;width:100%;scroll-snap-align:center;aspect-ratio:1;background:var(--soft)}
+.gal img{width:100%;height:100%;object-fit:cover;display:block}
+.dots{display:flex;justify-content:center;gap:6px;margin:8px 0 0}
+.dots i{width:7px;height:7px;border-radius:50%;background:#ddd}
+.dots i.on{background:var(--p)}
+.pn2{margin:12px 0 2px;font-size:19px;font-weight:800}
+.pp{display:flex;align-items:center;gap:10px;margin:8px 0}
+.pp b{font-size:24px;font-weight:800;color:var(--p)}
+.pp s{color:var(--mut);font-size:14px}
+.sv{background:#e3f6e8;color:#1b7a3a;font-weight:700;font-size:12px;padding:3px 8px;border-radius:6px}
+.ds{color:var(--mut);font-size:14px;margin:6px 0 14px}
+.pa{display:flex;gap:10px;align-items:center}
+.pa .add{padding:13px 26px;font-size:15px}
+.pa .stp button{height:42px;width:38px}
+.shr{flex:1;border:1.5px solid var(--line);border-radius:12px;padding:12px;font-weight:700}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row .nmc{font-weight:700;font-size:14px}
+.tot{display:flex;justify-content:space-between;padding:14px 0;font-weight:800;font-size:17px}
+.acts{display:flex;gap:10px}
+.acts button{flex:1;padding:13px;border-radius:12px;font-weight:800}
+.acts .go{background:var(--p);color:#fff}
+.acts .bk{border:1.5px solid var(--line)}
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:99px;font-size:13px;z-index:40;display:none}
+.pet{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.pet span{position:absolute;top:-24px;background:var(--a);opacity:.45;border-radius:60% 0 60% 0;animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(110vh) rotate(420deg)}}
+@media(prefers-reduced-motion:reduce){.pet{display:none}html{scroll-behavior:auto}}
 </style>
 </head>
-<body>
+<body class="fest">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
 <symbol id="mark" viewBox="148 40 84 84">
 <circle cx="190" cy="82" r="40" fill="none" stroke="currentColor" stroke-width="1.5"/>
@@ -59,148 +146,316 @@ footer{text-align:center;color:var(--mut);font-size:13px;padding:24px 16px}
 <g transform="rotate(-18 162 88)"><path d="M162 88Q162 68 190 68Q218 68 218 88Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M172 80Q175 73 190 73" fill="none" stroke="var(--mut)" stroke-width="1.2" stroke-linecap="round"/></g>
 </symbol>
 </svg>
+<div id="pet" class="pet" aria-hidden="true"></div>
 
-<header>
-<svg role="img" aria-label="Pitaara logo"><use href="#mark"/></svg>
-<h1 class="word">PITAARA</h1>
+<header class="top">
+<div class="hrow">
+<svg class="lg" role="img" aria-label="Pitaara logo"><use href="#mark"/></svg>
+<div class="hn"><div class="tg" id="tg">Delhi se, ghar tak</div><h1>PITAARA</h1></div>
+<div class="hb"><button class="gb" id="addb">Add</button><button class="gb" id="shb">Share</button></div>
+</div>
+<div class="sb">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+<input id="q" type="search" placeholder="Search products, brands" aria-label="Search" autocomplete="off">
+<button id="qx" hidden aria-label="Clear search">&times;</button>
+</div>
 </header>
 <div id="bn" class="bn" hidden></div>
 
-<main class="wrap">
-<input id="q" class="search" type="search" placeholder="Product dhundho" aria-label="Product dhundho">
-<div id="cats" class="chips"></div>
+<main>
+<section class="hero">
+<div class="tor"></div>
+<div class="hc">
+<p class="kal" id="hk">Welcome to</p>
+<h2 id="ht">Pitaara Store</h2>
+<p class="hs2" id="hs">Apne favourite products, seedha ghar tak.</p>
+<button class="wb" id="herob">Shop now</button>
+</div>
+</section>
+
+<div class="steps"><div><b>1</b>ADD dabao</div><div><b>2</b>Cart kholo</div><div><b>3</b>Checkout karo</div></div>
+
+<section id="s-top" class="sec pad" hidden>
+<div class="sh2"><h3>Top selling</h3><span class="sw">Swipe &rarr;</span></div>
+<div id="top" class="hs"></div>
+</section>
+
+<section id="s-cat" class="sec" hidden>
+<div class="sh2"><h3>Shop by category</h3></div>
+<div id="cats" class="cg"></div>
+</section>
+
+<section id="s-brand" class="sec" hidden>
+<div class="sh2"><h3>Shop by brand</h3><span class="sw">Swipe &rarr;</span></div>
+<div id="brands" class="hs"></div>
+</section>
+
+<section id="res" class="sec">
+<div class="sh2"><h3 id="rt">All products</h3><button class="lk" id="all" hidden>Show all</button></div>
+<div class="ctl"><label for="so">Sort</label>
+<select id="so"><option value="rec">Recommended</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option><option value="disc">Biggest discount</option></select></div>
+<div id="bchips" class="chips"></div>
 <div id="grid" class="grid"></div>
+</section>
 </main>
 
-<footer>Delhi &nbsp;|&nbsp; <a href="orders.html" style="color:inherit">Mere orders</a></footer>
+<footer><span id="ft">Shukriya! Phir milenge.</span><small>Delhi &nbsp;|&nbsp; <a href="orders.html">Mere orders</a></small></footer>
 
-<div id="bar" class="bar"><div class="bar-in">
-<div><b id="cnt">0 items</b><br><span id="sum" style="color:var(--mut);font-size:14px"></span></div>
-<button class="btn" id="open">Cart dekho</button>
+<div id="bar" class="bar" hidden>
+<div><b id="cnt"></b><div id="sum"></div></div>
+<button class="wb" id="open">Cart dekho</button>
+</div>
+
+<div id="ps" class="ov"><div class="pn">
+<div class="ph2"><h3 id="pt">Product</h3><button class="x" data-act="closep" aria-label="Band karo">&times;</button></div>
+<div id="pb"></div>
 </div></div>
 
-<div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-label="Cart">
-<div class="panel">
-<h2>Aapka cart</h2>
-<div id="list"></div>
-<div class="tot"><span>Total</span><span id="tot"></span></div>
-<div class="acts"><button class="btn alt" id="close">Aur dekho</button><button class="btn" id="send">Checkout karo</button></div>
-</div>
-</div>
+<div id="cs" class="ov"><div class="pn">
+<div class="ph2"><h3>Aapka cart</h3><button class="x" data-act="closec" aria-label="Band karo">&times;</button></div>
+<div id="cl"></div>
+<div class="tot"><span>Total</span><span id="ctot"></span></div>
+<div class="acts"><button class="bk" data-act="closec">Aur dekho</button><button class="go" id="send">Checkout karo</button></div>
+</div></div>
+
+<div id="toast" role="status"></div>
 
 <script type="module">
-import { WHATSAPP, SHOP, firebaseConfig } from "./config.js";
+import { SHOP, firebaseConfig } from "./config.js";
+import { applyTheme } from "./theme.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-let PRODUCTS = [
-  { name: "Product 1", price: 123, desc: "abc", img: "" },
-  { name: "Product 2", price: 123, desc: "abc", img: "" },
-  { name: "Product 3", price: 123, desc: "abc", img: "" },
-  { name: "Product 4", price: 123, desc: "abc", img: "" },
-  { name: "Product 5", price: 123, desc: "abc", img: "" },
-  { name: "Product 6", price: 123, desc: "abc", img: "" }
-];
-/* Backup list: Firebase se products na aayein tabhi ye dikhti hai. */
-
-const cart = {};
 const $ = id => document.getElementById(id);
-const rs = n => "\u20B9" + n.toLocaleString("en-IN");
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const basket = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M4 11h16l-2 9H6z"/><path d="M7 11a5 5 0 0 1 10 0"/></svg>';
+const rs = n => "\u20B9" + Number(n).toLocaleString("en-IN");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const THEME_KEY = "pitaara_theme";
+try { applyTheme(localStorage.getItem(THEME_KEY) || "diwali"); } catch (e) { applyTheme("diwali"); }
 
-let cat = "";
-function draw() {
-  const t = $("q").value.trim().toLowerCase();
-  const cats = [...new Set(PRODUCTS.map(p => p.category).filter(Boolean))];
-  $("cats").innerHTML = cats.length ? ['<button class="chip' + (cat ? "" : " on") + '" data-c="">Sab</button>'].concat(cats.map(c => '<button class="chip' + (cat === c ? " on" : "") + '" data-c="' + esc(c) + '">' + esc(c) + '</button>')).join("") : "";
-  const items = PRODUCTS.map((p, i) => ({ p, i })).filter(x => (!cat || x.p.category === cat) && (x.p.name + " " + (x.p.desc || "")).toLowerCase().includes(t));
-  $("grid").innerHTML = items.length ? items.map(({ p, i }) => {
-    const out = p.stock != null && p.stock <= 0, low = p.stock != null && p.stock > 0 && p.stock <= 5;
-    const off = p.mrp > p.price ? Math.round((1 - p.price / p.mrp) * 100) : 0;
-    return '<article class="card"><div class="ph">' + (p.img ? '<img loading="lazy" src="' + esc(p.img) + '" alt="' + esc(p.name) + '">' : basket) +
-      '</div><div class="info"><div class="name">' + esc(p.name) + '</div><div class="desc">' + esc(p.desc) +
-      '</div><div class="price">' + rs(p.price) + (off ? ' <s class="mrp">' + rs(p.mrp) + '</s> <span class="off">' + off + '% off</span>' : "") + '</div>' +
-      (low ? '<div class="desc">Sirf ' + p.stock + ' bache hain</div>' : "") +
-      '<button class="add" data-i="' + i + '"' + (out ? " disabled" : "") + '>' + (out ? "Out of stock" : "Cart me daalo") + '</button></div></article>';
-  }).join("") : '<p class="empty">Is naam ka koi product nahi mila.</p>';
-}
+const shareIc = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>';
+const basket = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M4 11h16l-2 9H6z"/><path d="M7 11a5 5 0 0 1 10 0"/></svg>';
 
-function totals() {
-  let n = 0, s = 0;
-  for (const i in cart) { n += cart[i]; s += cart[i] * PRODUCTS[i].price; }
-  return { n, s };
-}
+let PRODUCTS = Array.from({ length: 6 }, (_, k) => ({ name: "Product " + (k + 1), price: 123, desc: "abc", unit: "", imgs: [] }));
+const cart = {};
+let q = "", cat = "", brand = "", sort = "rec", cur = -1, cfg = {}, dip = null;
 
-function sync() {
-  const { n, s } = totals();
-  save();
-  $("bar").classList.toggle("on", n > 0);
-  $("cnt").textContent = n + (n === 1 ? " item" : " items");
-  $("sum").textContent = rs(s);
-  $("tot").textContent = rs(s);
-  $("list").innerHTML = Object.keys(cart).map(i =>
-    '<div class="row"><div><div>' + esc(PRODUCTS[i].name) + '</div><div class="desc">' + rs(PRODUCTS[i].price) +
-    '</div></div><div class="qty"><button data-d="-1" data-i="' + i + '" aria-label="Kam karo">-</button><span>' + cart[i] +
-    '</span><button data-d="1" data-i="' + i + '" aria-label="Badhao">+</button></div></div>'
-  ).join("");
-  if (!n) $("sheet").classList.remove("on");
-}
+const off = p => (p.mrp > p.price ? p.mrp - p.price : 0);
+const offTxt = p => { const o = off(p); if (!o) return ""; const pc = Math.round(o / p.mrp * 100); return pc >= 10 ? pc + "% OFF" : rs(o) + " OFF"; };
+const outOf = p => p.stock != null && p.stock <= 0;
 
+function toast(t) { const el = $("toast"); el.textContent = t; el.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => el.style.display = "none", 2500); }
+
+/* ---------- cart ---------- */
 function save() {
-  try {
-    localStorage.setItem("pitaara_cart", JSON.stringify(Object.keys(cart).map(i => ({ id: PRODUCTS[i].id || "", name: PRODUCTS[i].name, price: PRODUCTS[i].price, qty: cart[i] }))));
-  } catch (e) {}
+  try { localStorage.setItem("pitaara_cart", JSON.stringify(Object.keys(cart).map(i => ({ id: PRODUCTS[i].id || "", name: PRODUCTS[i].name, price: PRODUCTS[i].price, qty: cart[i] })))); } catch (e) {}
 }
-
 function restore() {
   try {
     JSON.parse(localStorage.getItem("pitaara_cart") || "[]").forEach(l => {
       const i = PRODUCTS.findIndex(p => (l.id && p.id === l.id) || (!l.id && p.name === l.name));
-      if (i >= 0) { const st = PRODUCTS[i].stock, q = st != null ? Math.min(l.qty, st) : l.qty; if (q > 0) cart[i] = q; }
+      if (i >= 0 && !outOf(PRODUCTS[i])) { const st = PRODUCTS[i].stock, n = st != null ? Math.min(l.qty, st) : l.qty; if (n > 0) cart[i] = n; }
     });
   } catch (e) {}
 }
-
-function change(i, d) {
-  const p = PRODUCTS[i], cur = cart[i] || 0;
-  if (d > 0 && p.stock != null && cur + d > p.stock) return alert("Is product ke sirf " + p.stock + " piece bache hain.");
-  cart[i] = cur + d;
-  if (cart[i] <= 0) delete cart[i];
-  sync();
+function totals() { let n = 0, s = 0; for (const i in cart) { n += cart[i]; s += cart[i] * PRODUCTS[i].price; } return { n, s }; }
+function bump(i, d) {
+  const p = PRODUCTS[i], c = (cart[i] || 0) + d;
+  if (d > 0 && p.stock != null && c > p.stock) return toast("Sirf " + p.stock + " piece bache hain.");
+  if (c <= 0) delete cart[i]; else cart[i] = c;
+  save(); renderAll();
+  if (cur >= 0) sheetP();
+  if ($("cs").classList.contains("on")) sheetC();
 }
 
-$("q").addEventListener("input", draw);
-$("cats").addEventListener("click", e => { const b = e.target.closest(".chip"); if (b) { cat = b.dataset.c; draw(); } });
-$("grid").addEventListener("click", e => { const b = e.target.closest(".add"); if (b) change(b.dataset.i, 1); });
-$("list").addEventListener("click", e => { const b = e.target.closest("button"); if (b) change(b.dataset.i, +b.dataset.d); });
-$("open").onclick = () => $("sheet").classList.add("on");
-$("close").onclick = () => $("sheet").classList.remove("on");
-$("sheet").addEventListener("click", e => { if (e.target.id === "sheet") $("sheet").classList.remove("on"); });
-$("send").onclick = () => {
-  save();
-  location.href = "checkout.html";
+/* ---------- cards ---------- */
+function ctl(i) {
+  const p = PRODUCTS[i];
+  if (outOf(p)) return '<button class="add" disabled>Out of stock</button>';
+  const n = cart[i] || 0;
+  return n ? '<div class="stp"><button data-act="dec" data-i="' + i + '" aria-label="Kam karo">-</button><span>' + n + '</span><button data-act="inc" data-i="' + i + '" aria-label="Badhao">+</button></div>'
+    : '<button class="add" data-act="inc" data-i="' + i + '">ADD</button>';
+}
+function imgOf(p) { return p.imgs[0] ? '<img loading="lazy" src="' + esc(p.imgs[0]) + '" alt="' + esc(p.name) + '">' : '<div class="ph">' + basket + '</div>'; }
+function card(p, i) {
+  const low = p.stock != null && p.stock > 0 && p.stock <= 5;
+  return '<article class="card"><div class="im" data-act="open" data-i="' + i + '">' + imgOf(p) +
+    (offTxt(p) ? '<span class="bd">' + offTxt(p) + '</span>' : "") +
+    '<button class="sh" data-act="share" data-i="' + i + '" aria-label="Share">' + shareIc + '</button>' +
+    (p.bestseller ? '<span class="bs">BESTSELLER</span>' : "") + '</div>' +
+    '<div class="nm" data-act="open" data-i="' + i + '">' + esc(p.name) + '</div>' +
+    '<div class="un">' + esc(p.unit || "") + (low ? (p.unit ? " | " : "") + "Sirf " + p.stock + " bache" : "") + '</div>' +
+    '<div class="pr"><div><b>' + rs(p.price) + '</b>' + (off(p) ? '<s>' + rs(p.mrp) + '</s>' : "") + '</div>' + ctl(i) + '</div></article>';
+}
+
+function groups(key) {
+  const m = new Map();
+  PRODUCTS.forEach(p => {
+    const k = p[key]; if (!k) return;
+    const g = m.get(k) || { name: k, n: 0, img: "" };
+    g.n++; if (!g.img && p.imgs[0]) g.img = p.imgs[0]; m.set(k, g);
+  });
+  return [...m.values()];
+}
+function tile(cls, act, g, on) {
+  return '<button class="' + cls + (on ? " on" : "") + '" data-act="' + act + '" data-go="1" data-v="' + esc(g.name) + '"><span class="ci">' +
+    (g.img ? '<img loading="lazy" src="' + esc(g.img) + '" alt="">' : basket) + '</span><b>' + esc(g.name) + '</b><small>' + g.n + (g.n === 1 ? " item" : " items") + '</small></button>';
+}
+function keep(id, fn) { const el = $(id), x = el.scrollLeft; fn(el); el.scrollLeft = x; }
+
+function filtered(skipBrand) {
+  const t = q.trim().toLowerCase();
+  return PRODUCTS.map((p, i) => ({ p, i })).filter(x =>
+    (!cat || x.p.category === cat) && (skipBrand || !brand || x.p.brand === brand) &&
+    (!t || [x.p.name, x.p.brand, x.p.category, x.p.desc].join(" ").toLowerCase().includes(t)));
+}
+
+function results() {
+  const pool = filtered(true), bc = new Map();
+  pool.forEach(x => { if (x.p.brand) bc.set(x.p.brand, (bc.get(x.p.brand) || 0) + 1); });
+  $("bchips").innerHTML = bc.size
+    ? ('<button class="chip' + (brand ? "" : " on") + '" data-act="brand" data-v="">All</button>' +
+      [...bc].map(([b, n]) => '<button class="chip' + (brand === b ? " on" : "") + '" data-act="brand" data-v="' + esc(b) + '">' + esc(b) + ' <small>' + n + '</small></button>').join(""))
+    : "";
+  const items = brand ? pool.filter(x => x.p.brand === brand) : pool.slice();
+  const pc = p => (off(p) ? (p.mrp - p.price) / p.mrp : 0);
+  items.sort(sort === "low" ? (a, b) => a.p.price - b.p.price
+    : sort === "high" ? (a, b) => b.p.price - a.p.price
+    : sort === "disc" ? (a, b) => pc(b.p) - pc(a.p)
+    : (a, b) => (b.p.bestseller ? 1 : 0) - (a.p.bestseller ? 1 : 0) || (b.p.order || 0) - (a.p.order || 0));
+  $("rt").textContent = q.trim() ? 'Results for "' + q.trim() + '"' : cat || brand || "All products";
+  $("all").hidden = !(q.trim() || cat || brand);
+  $("grid").innerHTML = items.length ? items.map(x => card(x.p, x.i)).join("") : '<p class="empty">Koi product nahi mila.</p>';
+}
+
+function renderAll() {
+  const top = PRODUCTS.map((p, i) => ({ p, i })).filter(x => x.p.bestseller).slice(0, 12);
+  $("s-top").hidden = !top.length;
+  keep("top", el => { el.innerHTML = top.map(x => '<div class="tc">' + card(x.p, x.i) + '</div>').join(""); });
+  const cs = groups("category");
+  $("s-cat").hidden = !cs.length;
+  $("cats").innerHTML = cs.map(g => tile("ct", "cat", g, cat === g.name)).join("");
+  const bs = groups("brand");
+  $("s-brand").hidden = !bs.length;
+  keep("brands", el => { el.innerHTML = bs.map(g => tile("bt", "brand", g, brand === g.name)).join(""); });
+  results();
+  const t = totals();
+  $("bar").hidden = !t.n;
+  $("cnt").textContent = t.n + (t.n === 1 ? " item" : " items");
+  $("sum").textContent = rs(t.s);
+  $("qx").hidden = !q;
+}
+
+/* ---------- sheets ---------- */
+function sheetP() {
+  const p = PRODUCTS[cur], o = off(p), imgs = p.imgs.length ? p.imgs : [""];
+  $("pt").textContent = p.category || "Product";
+  $("pb").innerHTML = '<div class="gw"><div class="gal" id="gal">' +
+    imgs.map(u => '<div>' + (u ? '<img src="' + esc(u) + '" alt="' + esc(p.name) + '">' : '<div class="ph">' + basket + '</div>') + '</div>').join("") + '</div>' +
+    (o ? '<span class="bd">' + offTxt(p) + '</span>' : "") + '</div>' +
+    (imgs.length > 1 ? '<div class="dots" id="dots">' + imgs.map((_, k) => '<i' + (k ? "" : ' class="on"') + '></i>').join("") + '</div>' : "") +
+    '<h3 class="pn2">' + esc(p.name) + '</h3><div class="un">' + esc(p.unit || "") + (p.brand ? (p.unit ? " | " : "") + esc(p.brand) : "") + '</div>' +
+    '<div class="pp"><b>' + rs(p.price) + '</b>' + (o ? '<s>MRP ' + rs(p.mrp) + '</s><span class="sv">Save ' + rs(o) + '</span>' : "") + '</div>' +
+    (p.desc ? '<p class="ds">' + esc(p.desc) + '</p>' : "") +
+    '<div class="pa">' + ctl(cur) + '<button class="shr" data-act="share" data-i="' + cur + '">Share</button></div>';
+  const g = $("gal"), d = $("dots");
+  if (g && d) g.onscroll = () => { const k = Math.round(g.scrollLeft / g.clientWidth); [...d.children].forEach((x, n) => x.classList.toggle("on", n === k)); };
+}
+function openP(i) { cur = i; sheetP(); $("ps").classList.add("on"); }
+function closeP() { cur = -1; $("ps").classList.remove("on"); }
+
+function sheetC() {
+  const ks = Object.keys(cart);
+  if (!ks.length) { $("cs").classList.remove("on"); return; }
+  $("cl").innerHTML = ks.map(i => '<div class="row"><div><div class="nmc">' + esc(PRODUCTS[i].name) + '</div><div class="un">' + rs(PRODUCTS[i].price) + '</div></div>' +
+    '<div class="stp"><button data-act="dec" data-i="' + i + '" aria-label="Kam karo">-</button><span>' + cart[i] + '</span><button data-act="inc" data-i="' + i + '" aria-label="Badhao">+</button></div></div>').join("");
+  $("ctot").textContent = rs(totals().s);
+}
+
+/* ---------- share / install ---------- */
+async function share(i) {
+  const p = i >= 0 ? PRODUCTS[i] : null;
+  const url = location.origin + location.pathname + (p && p.id ? "#p=" + p.id : "");
+  const text = p ? p.name + " - " + rs(p.price) + " | " + SHOP : SHOP + " | Delhi";
+  try {
+    if (navigator.share) await navigator.share({ title: SHOP, text, url });
+    else { await navigator.clipboard.writeText(text + "\n" + url); toast("Link copy ho gaya"); }
+  } catch (e) {}
+}
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); dip = e; });
+$("addb").onclick = async () => {
+  if (dip) { dip.prompt(); dip = null; }
+  else alert("Browser ke menu (teen dots) me 'Add to Home screen' chuno.");
 };
+$("shb").onclick = () => share(-1);
+
+/* ---------- events ---------- */
+function toRes() { $("res").scrollIntoView({ behavior: "smooth" }); }
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const a = b.dataset.act, i = Number(b.dataset.i);
+  if (a === "inc") bump(i, 1);
+  else if (a === "dec") bump(i, -1);
+  else if (a === "open") openP(i);
+  else if (a === "share") share(i);
+  else if (a === "closep") closeP();
+  else if (a === "closec") $("cs").classList.remove("on");
+  else if (a === "cat") { cat = cat === b.dataset.v ? "" : b.dataset.v; brand = ""; renderAll(); if (cat) toRes(); }
+  else if (a === "brand") { brand = brand === b.dataset.v ? "" : b.dataset.v; renderAll(); if (b.dataset.go && brand) toRes(); }
+});
+$("ps").addEventListener("click", e => { if (e.target.id === "ps") closeP(); });
+$("cs").addEventListener("click", e => { if (e.target.id === "cs") $("cs").classList.remove("on"); });
+$("q").addEventListener("input", e => { q = e.target.value; renderAll(); });
+$("qx").onclick = () => { q = ""; $("q").value = ""; renderAll(); };
+$("all").onclick = () => { q = ""; cat = ""; brand = ""; $("q").value = ""; renderAll(); };
+$("so").onchange = e => { sort = e.target.value; results(); };
+$("herob").onclick = toRes;
+$("open").onclick = () => { sheetC(); $("cs").classList.add("on"); };
+$("send").onclick = () => { save(); location.href = "checkout.html"; };
+
+/* ---------- settings, petals, load ---------- */
+function petals(on) {
+  const box = $("pet"); box.innerHTML = "";
+  if (!on || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  for (let k = 0; k < 14; k++) {
+    const s = document.createElement("span"), z = 8 + Math.random() * 8;
+    s.style.cssText = "left:" + Math.round(Math.random() * 100) + "%;width:" + z + "px;height:" + (z + 4) + "px;animation-duration:" + (9 + Math.random() * 9).toFixed(1) + "s;animation-delay:-" + (Math.random() * 12).toFixed(1) + "s";
+    box.appendChild(s);
+  }
+}
+function applySettings(s) {
+  cfg = s;
+  const key = s.theme || "diwali";
+  applyTheme(key);
+  try { localStorage.setItem(THEME_KEY, key); } catch (e) {}
+  if (s.tagline) $("tg").textContent = s.tagline;
+  if (s.heroTitle) $("ht").textContent = s.heroTitle;
+  if (s.heroSub) $("hs").textContent = s.heroSub;
+  if (s.heroBtn) $("herob").textContent = s.heroBtn;
+  if (s.footer) $("ft").textContent = s.footer;
+  const fest = s.festive !== false;
+  document.body.classList.toggle("fest", fest);
+  petals(fest);
+  const b = s.shopOpen === false ? "Dukaan abhi band hai. Orders abhi nahi liye ja rahe." : (s.bannerText || "");
+  if (b) { $("bn").textContent = b; $("bn").hidden = false; }
+}
 
 async function load() {
   try {
     const db = getFirestore(initializeApp(firebaseConfig));
+    try { const st = await getDoc(doc(db, "settings", "store")); applySettings(st.exists() ? st.data() : {}); } catch (e) { applySettings({}); }
     const snap = await getDocs(collection(db, "products"));
-    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-      .filter(p => p.name && p.available !== false)
-      .sort((x, y) => (y.order || 0) - (x.order || 0));
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.name && p.available !== false);
     if (list.length) PRODUCTS = list;
-    try {
-      const st = await getDoc(doc(db, "settings", "store")), sd = st.exists() ? st.data() : {};
-      const b = sd.shopOpen === false ? "Dukaan abhi band hai. Orders abhi nahi liye ja rahe." : (sd.bannerText || "");
-      if (b) { $("bn").textContent = b; $("bn").hidden = false; }
-    } catch (e) {}
-  } catch (e) {}
+  } catch (e) { applySettings(cfg); }
+  PRODUCTS.forEach(p => { p.imgs = p.imgs && p.imgs.length ? p.imgs : (p.img ? [p.img] : []); });
   restore();
-  draw();
-  sync();
+  renderAll();
+  const m = location.hash.match(/^#p=(.+)$/);
+  if (m) { const i = PRODUCTS.findIndex(p => p.id === m[1]); if (i >= 0) openP(i); }
 }
 
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+renderAll();
 load();
 </script>
 </body>
